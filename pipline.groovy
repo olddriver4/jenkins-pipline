@@ -81,7 +81,7 @@ pipeline {
         BACKEND_BIN = '/data/tool/release.sh'
         FRONTEND_BIN = '/data/tool/switch_upstream.sh'
 
-        GIT_URL = 'git@github.com:Conflux-Dev/conflux-infura.git' //变更
+        GIT_URL = 'git url host' //变更
         GIT_TAG = "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |grep ${env.BRANCH_NAME} |tail -n1 |awk -F '/' '{print \$3}'" //根据需求变更
 
         DING_ID = 'infura dingding alarm' //变更
