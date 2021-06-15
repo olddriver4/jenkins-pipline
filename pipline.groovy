@@ -64,14 +64,13 @@ pipeline {
     }
 
     
-    //https://jenkins.confluxrpc.com/generic-webhook-trigger/invoke?token=infura-35glMHdxFSr2UldPcs1iUWTmSs6nOIOw
     triggers{
         GenericTrigger(
             genericVariables: [
             [key: 'ref', value: '$.ref']
             ],
             causeString: 'Triggered on $ref',
-            token: "infura-35glMHdxFSr2UldPcs1iUWTmSs6nOIOw", //变更
+            token: "2UldPcs1iUWTmSs6nOIOw", //变更
             printContributedVariables: true,
             printPostContent: true,
             silentResponse: false,
