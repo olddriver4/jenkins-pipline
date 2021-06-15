@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
     parameters {
@@ -41,13 +40,14 @@ pipeline {
     }
 
     
+    //https://myhosts/generic-webhook-trigger/invoke?token=iUWTmSs6nOIOw
     triggers{
         GenericTrigger(
             genericVariables: [
             [key: 'ref', value: '$.ref']
             ],
             causeString: 'Triggered on $ref',
-            token: "2UldPcs1iUWTmSs6nOIOw", //变更
+            token: "iUWTmSs6nOIOw", //变更
             printContributedVariables: true,
             printPostContent: true,
             silentResponse: false,
@@ -84,11 +84,47 @@ pipeline {
         GIT_URL = 'git@github.com:Conflux-Dev/conflux-infura.git' //变更
         GIT_TAG = "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |grep ${env.BRANCH_NAME} |tail -n1 |awk -F '/' '{print \$3}'" //根据需求变更
 
-        DING_TOKEN = '' //变更
+        DING_ID = 'infura dingding alarm' //变更
     }
-    
+
     stages {
         stage("build description") {
+            post {
+                success {
+                    wrap([$class: 'BuildUser']) {
+                        script {
+                            //GIT_INFO
+                            GIT_COMMT_ID = sh ( returnStdout: true, script: "git rev-parse --short HEAD")
+                            GIT_COMMIT_USER = sh ( returnStdout: true, script: "git --no-pager show -s --format='%an'")
+                            GIT_COMMIT_LOG = sh ( returnStdout: true, script: "git --no-pager show -s --format='%s'")
+
+                            //BUILD_USER_ID = "${env.BUILD_USER_ID}"
+                            BUILD_USER = "${env.BUILD_USER}"
+                            //BUILD_USER_EMAIL = "${env.BUILD_USER_EMAIL}"
+                        }
+                    }
+                    dingtalk (
+                        robot: "${env.DING_ID}", //dingding token
+                        type:'MARKDOWN',
+                        atAll: false,
+                        title: "Success: ${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}",
+                        //messageUrl: 'xxxx',
+                        text: [
+                            //"<font color="#000066" size="5" >Aborted  [${JOB_NAME}](${BUILD_URL}) </font><br />",
+                            "### [${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}](${BUILD_URL})",
+                            ">- build event：**Build Starting ♻**",
+                            ">- branch: **${params.BRANCH_NAME}**",
+                            ">- build time: ${currentBuild.durationString}",
+                            ">- tag: ${env.GIT_TAG}",
+                            ">- commit id: ${GIT_COMMT_ID}",
+                            ">- commit user: ${GIT_COMMIT_USER}",
+                            ">- chage log: ${GIT_COMMIT_LOG}",
+                            ">- build user: ${BUILD_USER}",
+                        ]
+                    )
+                }
+            }
+
             environment {
                 GIT_TAG = sh ( returnStdout: true, script: "${env.GIT_TAG}")
             }
@@ -112,7 +148,7 @@ pipeline {
             parallel {
                 stage('checkout') {
                     steps {
-                        //deleteDir() /* clean up our workspace */
+                        //deleteDir() //clean up our workspace
                         echo "Start checkout github ing ..."
                         git branch: "${params.BRANCH_NAME}", credentialsId: 'jenkins', url: "${env.GIT_URL}"
                     }
@@ -171,7 +207,7 @@ pipeline {
                 }
             }
             environment {
-                GIT_TAG = sh ( returnStdout: true, script: "${env.GIT_TAG}")
+                GIT_TAG = 'devnet'
             }
             steps {
                 script {
@@ -374,7 +410,7 @@ pipeline {
             wrap([$class: 'BuildUser']) {
                 script {
                     //GIT_INFO
-                    GIT_TAG = sh ( returnStdout: true, script: "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |tail -n1 |awk -F '/' '{print \$3}'")
+                    GIT_TAG = sh ( returnStdout: true, script: "${env.GIT_TAG}")
                     GIT_COMMT_ID = sh ( returnStdout: true, script: "git rev-parse --short HEAD")
                     GIT_COMMIT_USER = sh ( returnStdout: true, script: "git --no-pager show -s --format='%an'")
                     GIT_COMMIT_LOG = sh ( returnStdout: true, script: "git --no-pager show -s --format='%s'")
@@ -385,7 +421,7 @@ pipeline {
                 }
             }
             dingtalk (
-                robot: "${env.DING_TOKEN}", //dingding token
+                robot: "${env.DING_ID}", //dingding token
                 type:'MARKDOWN',
                 atAll: false,
                 title: "Success: ${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}",
@@ -394,8 +430,8 @@ pipeline {
                     //"<font color="#000066" size="5" >Aborted  [${JOB_NAME}](${BUILD_URL}) </font><br />",
                     "### [${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}](${BUILD_URL})",
                     ">- build event：**Build Success ✅**",
+                    ">- branch: **${params.BRANCH_NAME}**",
                     ">- build time: ${currentBuild.durationString}",
-                    ">- branch: ${params.BRANCH_NAME}",
                     ">- tag: ${GIT_TAG}",
                     ">- commit id: ${GIT_COMMT_ID}",
                     ">- commit user: ${GIT_COMMIT_USER}",
@@ -409,7 +445,7 @@ pipeline {
             wrap([$class: 'BuildUser']) {
                 script {
                     //GIT_INFO
-                    GIT_TAG = sh ( returnStdout: true, script: "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |tail -n1 |awk -F '/' '{print \$3}'")
+                    GIT_TAG = sh ( returnStdout: true, script: "${env.GIT_TAG}")
                     GIT_COMMT_ID = sh ( returnStdout: true, script: "git rev-parse --short HEAD")
                     GIT_COMMIT_USER = sh ( returnStdout: true, script: "git --no-pager show -s --format='%an'")
                     GIT_COMMIT_LOG = sh ( returnStdout: true, script: "git --no-pager show -s --format='%s'")
@@ -420,7 +456,7 @@ pipeline {
                 }
             }
             dingtalk (
-                robot: "${env.DING_TOKEN}", //dingding token
+                robot: "${env.DING_ID}", //dingding token
                 type:'MARKDOWN',
                 atAll: false,
                 title: "Failure: ${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}",
@@ -428,8 +464,8 @@ pipeline {
                 text: [
                     "### [${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}](${BUILD_URL})",
                     ">- build event：**Build Fail❌**",
+                    ">- branch: **${params.BRANCH_NAME}**",
                     ">- build time: ${currentBuild.durationString}",
-                    ">- branch: ${params.BRANCH_NAME}",
                     ">- tag: ${GIT_TAG}",
                     ">- commit id: ${GIT_COMMT_ID}",
                     ">- commit user: ${GIT_COMMIT_USER}",
@@ -443,7 +479,7 @@ pipeline {
             wrap([$class: 'BuildUser']) {
                 script {
                     //GIT_INFO
-                    GIT_TAG = sh ( returnStdout: true, script: "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |tail -n1 |awk -F '/' '{print \$3}'")
+                    GIT_TAG = sh ( returnStdout: true, script: "${env.GIT_TAG}")
                     GIT_COMMT_ID = sh ( returnStdout: true, script: "git rev-parse --short HEAD")
                     GIT_COMMIT_USER = sh ( returnStdout: true, script: "git --no-pager show -s --format='%an'")
                     GIT_COMMIT_LOG = sh ( returnStdout: true, script: "git --no-pager show -s --format='%s'")
@@ -454,7 +490,7 @@ pipeline {
                 }
             }
             dingtalk (
-                robot: "${env.DING_TOKEN}", //dingding token
+                robot: "${env.DING_ID}", //dingding token
                 type:'MARKDOWN',
                 atAll: false,
                 title: "Unstable: ${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}",
@@ -462,8 +498,8 @@ pipeline {
                 text: [
                     "### [${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}](${BUILD_URL})",
                     ">- build event：**Build Unstable❓**",
+                    ">- branch: **${params.BRANCH_NAME}**",
                     ">- build time: ${currentBuild.durationString}",
-                    ">- branch: ${params.BRANCH_NAME}",
                     ">- tag: ${GIT_TAG}",
                     ">- commit id: ${GIT_COMMT_ID}",
                     ">- commit user: ${GIT_COMMIT_USER}",
@@ -477,7 +513,7 @@ pipeline {
             wrap([$class: 'BuildUser']) {
                 script {
                     //GIT_INFO
-                    GIT_TAG = sh ( returnStdout: true, script: "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |tail -n1 |awk -F '/' '{print \$3}'")
+                    GIT_TAG = sh ( returnStdout: true, script: "${env.GIT_TAG}")
                     GIT_COMMT_ID = sh ( returnStdout: true, script: "git rev-parse --short HEAD")
                     GIT_COMMIT_USER = sh ( returnStdout: true, script: "git --no-pager show -s --format='%an'")
                     GIT_COMMIT_LOG = sh ( returnStdout: true, script: "git --no-pager show -s --format='%s'")
@@ -488,7 +524,7 @@ pipeline {
                 }
             }
             dingtalk (
-                robot: "${env.DING_TOKEN}", //dingding token
+                robot: "${env.DING_ID}", //dingding token
                 type:'MARKDOWN',
                 atAll: false,
                 title: "Aborted: ${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}",
@@ -496,8 +532,8 @@ pipeline {
                 text: [
                     "### [${JOB_NAME}/${params.SERVICE_NAME}/${ROLLBACK_VERSION}](${BUILD_URL})",
                     ">- build event：**Build Aborted❗**",
+                    ">- branch: **${params.BRANCH_NAME}**",
                     ">- build time: ${currentBuild.durationString}",
-                    ">- branch: ${params.BRANCH_NAME}",
                     ">- tag: ${GIT_TAG}",
                     ">- commit id: ${GIT_COMMT_ID}",
                     ">- commit user: ${GIT_COMMIT_USER}",
@@ -508,4 +544,3 @@ pipeline {
         }
     }
 }
-
