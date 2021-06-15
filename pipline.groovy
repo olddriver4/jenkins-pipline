@@ -21,7 +21,7 @@ pipeline {
         GIT_URL = 'git@github.com:Conflux-Dev/conflux-infura.git' //变更
         GIT_TAG = "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |tail -n1 |awk -F '/' '{print \$3}'"
 
-        DING_TOKEN = 'c5af81df25f8ee17b68ddc05c54d06f5849d715df1a393a79e916811f7513287' //变更
+        DING_TOKEN = '' //变更
     }
 
     parameters {
