@@ -1,29 +1,6 @@
 
 pipeline {
     agent any
-    environment {
-        PROJECT_NAME = 'infura' //变更
-
-        SSH_SUFFIX_NGX_BJ = 'db-BJ' //Nginx BJ 服务存放 变更
-        SSH_SUFFIX_NGX_HK = 'db-HK' //Nginx HK 服务存放 变更
-        SSH_SUFFIX_BACK_BJ = 'backend-BJ' //Backend BJ 服务存放 变更
-        SSH_SUFFIX_BACK_HK = 'backend-HK' //Nginx HK 服务存放 变更
-        SSH_DEV_BACK = 'infura-devnet-backend' //Dev 服务器固定
-
-        UPSTREAM_TAG_BACKEND = 'infura-backend' //变更 BJ and HK
-        UPSTREAM_TAG_RPC = 'infura-fullnode' //变更 BJ and HK
-
-        DET_DIR = '/data/docker-compose/bin' //变更
-
-        BACKEND_BIN = '/data/tool/release.sh'
-        FRONTEND_BIN = '/data/tool/switch_upstream.sh'
-
-        GIT_URL = 'git@github.com:Conflux-Dev/conflux-infura.git' //变更
-        GIT_TAG = "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |tail -n1 |awk -F '/' '{print \$3}'"
-
-        DING_TOKEN = '' //变更
-    }
-
     parameters {
         // 提供要部署的服务器选项
         string(
@@ -87,6 +64,29 @@ pipeline {
         //checkoutToSubdirectory('testdir') //checkout目录
     }
 
+    environment {
+        PROJECT_NAME = 'infura' //变更
+
+        SSH_SUFFIX_NGX_BJ = 'db-BJ' //Nginx BJ 服务存放 变更
+        SSH_SUFFIX_NGX_HK = 'db-HK' //Nginx HK 服务存放 变更
+        SSH_SUFFIX_BACK_BJ = 'backend-BJ' //Backend BJ 服务存放 变更
+        SSH_SUFFIX_BACK_HK = 'backend-HK' //Nginx HK 服务存放 变更
+        SSH_DEV_BACK = 'infura-devnet-backend-HK' //Dev 服务器固定
+
+        UPSTREAM_TAG_BACKEND = 'infura-backend' //变更 BJ and HK
+        UPSTREAM_TAG_RPC = 'infura-fullnode' //变更 BJ and HK
+
+        DET_DIR = '/data/docker-compose/bin' //变更
+
+        BACKEND_BIN = '/data/tool/release.sh'
+        FRONTEND_BIN = '/data/tool/switch_upstream.sh'
+
+        GIT_URL = 'git@github.com:Conflux-Dev/conflux-infura.git' //变更
+        GIT_TAG = "git ls-remote --exit-code --refs --tags ${env.GIT_URL} |grep ${env.BRANCH_NAME} |tail -n1 |awk -F '/' '{print \$3}'" //根据需求变更
+
+        DING_TOKEN = '' //变更
+    }
+    
     stages {
         stage("build description") {
             environment {
